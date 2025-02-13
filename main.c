@@ -10,11 +10,10 @@ static bool test(char *regex, char *text, bool expected);
 static bool test(char *regex, char *text, bool expected) {
     bool actual = Match(regex, text);
     if (actual != expected) {
-        printf("Match der Regex '{%s}' in Text '{%s}' failed!\n",regex,text);
+        printf("Match der Regex '{%s}' in Text '{%s}' failed!\n", regex, text);
     } else {
-        printf("Match der Regex '{%s}' in Text '{%s}' succeeded!\n",regex,text);
+            printf("Match der Regex '{%s}' in Text '{%s}' succeeded!\n", regex, text);
     }
-
     return actual == expected;
 }
 
@@ -22,9 +21,7 @@ bool Match(char *regex, char *text) {
     if (strlen(regex) > 0 && regex[0] == '^')
         return Do_Match(regex, 1, text, 0);
 
-    for (int i = 0; i <= strlen(text); i++) // Regex starting somewhere in text
-    {                                       // <= for Regex=$
-        // try match from text [i], when found: return true
+    for (int i = 0; i <= strlen(text); i++) {
         if (Do_Match(regex, 0, text, i)) {
             return true;
         }
@@ -36,9 +33,7 @@ bool Do_Match(char *regex, int reidx, char *text, int textidx) {
     if (reidx >= strlen(regex)) // regex completed
         return true;
 
-    if (regex[reidx] == '$' && reidx == strlen(regex) - 1 &&
-        textidx >=
-        strlen(text)) { // $ in Regex and regex completed and text completed
+    if (regex[reidx] == '$' && reidx == strlen(regex) - 1 && textidx >= strlen(text)) { // $ in Regex and regex completed and text completed
         return true;
     }
 
@@ -50,26 +45,33 @@ bool Do_Match(char *regex, int reidx, char *text, int textidx) {
         return false;
     }
 
-    if ((regex[reidx] == '.') ||
-        (regex[reidx] == text[textidx]))                    // char similar or .
+    if ((regex[reidx] == '.') || (regex[reidx] == text[textidx]))                    // char similar or .
         return Do_Match(regex, reidx + 1, text, textidx + 1); // continue
 
     return false; // e.g. $ found and text not completed
 }
+
 bool Do_Match_Star(char c, char *regex, int reidx, char *text, int textidx) {
-    // TODO
+    //printf("regex[%d]=%c,text[%d]=%c\n",reidx-2,c,textidx,text[textidx]);
+
+    // match and repeat(with character from before "*") until text done or regex after "*" matches
+    if(c == text[textidx] || c == '.' && textidx <= strlen(text) - 1 && regex[reidx] != text[textidx]) {
+        return Do_Match_Star(c,regex, reidx, text, textidx + 1);
+    } else {
+        //continue regex after "*"
+        return Do_Match(regex, reidx, text, textidx);
+    }
 
     return false;
 }
 
-int main(void) {
-    // Test cases
+void test_all(){
+    test("123", "Hello world!", false);
     test("llo", "Hello world!", true);
     test("d!", "Hello world!", true);
     test("H", "Hello world!", true);
     test("", "Hello world!", true);
 
-    test("123", "Hello world!", false);
     test("Hello world!abc", "Hello world!", false);
 
     test("l.o", "Hello world!", true);
@@ -104,6 +106,12 @@ int main(void) {
 
     test("ex*o", "Hello world!", false);
     test("x.*", "Hello world!", false);
+    test(".*", "Hello world!", true);
+}
+
+int main(void) {
+    // Test cases
+    test_all();
 
     return 0;
 }
